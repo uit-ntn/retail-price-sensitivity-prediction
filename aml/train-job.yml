@@ -1,0 +1,16 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+display_name: retail-train
+experiment_name: retail-demand-forecast
+code: ../src
+command: >-
+  python train.py --data ${{inputs.train_data}} --out_dir ${{outputs.model_out}}
+environment:
+  image: <to-be-overridden-by-pipeline>
+compute: azureml:cpu-cluster
+inputs:
+  train_data:
+    type: uri_folder
+    path: azureml://datastores/workspaceblobstore/paths/data/train/
+outputs:
+  model_out:
+    type: uri_folder

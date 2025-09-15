@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+*.log
+
+# Virtual env
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb~
+
+# VSCode
+.vscode/
+
+# MacOS & Windows
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar
+*.img
+
+# Outputs / Artifacts
+outputs/
+models/
+logs/
+data/
+
+# Azure ML
+aml_config/
+.azureml/
