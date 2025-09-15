@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retail-forecast-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: forecast
+  template:
+    metadata:
+      labels:
+        app: forecast
+    spec:
+      containers:
+      - name: forecast-api
+        image: <ACR_NAME>.azurecr.io/infer:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: MODEL_PATH
+          value: /app/model
