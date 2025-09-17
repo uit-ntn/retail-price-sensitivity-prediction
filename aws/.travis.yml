@@ -1,0 +1,23 @@
+language: python
+python: "3.10"
+
+install:
+  - pip install -r core/requirements.txt
+
+script:
+  - pytest -q core/tests
+
+after_success:
+  - python aws/scripts/create_training_job.py | tee train.log
+  - export MODEL_ARTIFACT=$(grep MODEL_ARTIFACT train.log | awk '{print $2}')
+  - MODEL_ARTIFACT=$MODEL_ARTIFACT python aws/scripts/register_model.py | tee reg.log
+  - export MODEL_PACKAGE_ARN=$(grep MODEL_PACKAGE_ARN reg.log | awk '{print $2}')
+  - MODEL_PACKAGE_ARN=$MODEL_PACKAGE_ARN python aws/scripts/deploy_endpoint.py
+
+env:
+  global:
+    - AWS_REGION=ap-southeast-1
+    - S3_DATA_BUCKET=retail-mlops-data-<acct>-<region>
+    - SM_EXEC_ROLE_ARN=arn:aws:iam::<acct>:role/sagemaker-exec-role
+    - MODEL_PACKAGE_GROUP_NAME=retail-mlops-group
+    - ENDPOINT_NAME=retail-mlops-endpoint

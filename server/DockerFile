@@ -1,0 +1,15 @@
+FROM python:3.10-slim
+
+# Cài đặt
+WORKDIR /app
+COPY server/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy code
+COPY server/ /app/
+
+# Tùy chọn: nếu bạn muốn bake sẵn model vào image thì COPY vào /app/model/
+# COPY artifacts/model.joblib /app/model/model.joblib
+
+EXPOSE 8000
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
