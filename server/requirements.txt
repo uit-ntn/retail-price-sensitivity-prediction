@@ -1,0 +1,17 @@
+# Core Python packages
+numpy
+pandas
+
+# Machine Learning logging (Azure ML tích hợp MLflow)
+mlflow
+
+# API serving
+fastapi
+uvicorn
+
+# Testing
+pytest
+
+# Optional: cho pickle / joblib model (nếu cần)
+scikit-learn
+joblib

@@ -1,107 +1,113 @@
-# MLOps Azure – Retail Demand Forecast
+# Retail Forecast MLOps (Azure + AWS)
 
-## Giới thiệu
-Dự án này triển khai **MLOps pipeline trên Azure** cho bài toán **dự báo nhu cầu bán lẻ (retail demand forecasting)**.  
-Mục tiêu là xây dựng hệ thống **tự động huấn luyện, triển khai, và mở rộng mô hình ML** khi có thay đổi code hoặc dữ liệu.  
+Dự án demo **MLOps pipeline đa cloud (Azure & AWS)** cho bài toán **dự báo nhu cầu bán lẻ**.  
+Ngôn ngữ: **Python**, hạ tầng bằng **Terraform / Bicep**, triển khai inference bằng **Kubernetes (AKS/EKS)**,  
+CI/CD bằng **Azure DevOps Pipeline** hoặc **Jenkins/Travis CI**.
 
-## Kiến trúc tổng quan
-Pipeline bao gồm các thành phần chính:
+---
 
-- **Azure Pipelines** – CI/CD cho build, test, release mô hình.  
-- **Azure Machine Learning (AML)** – huấn luyện, quản lý mô hình, đăng ký model.  
-- **Azure Blob Storage** – lưu trữ dữ liệu huấn luyện và artifact model.  
-- **Azure Container Registry (ACR)** – chứa Docker image cho train và inference.  
-- **Azure Container Instances (ACI)** – môi trường DEV để deploy model nhanh.  
-- **Azure Kubernetes Service (AKS)** – môi trường PROD cho deploy model scale lớn.  
+## 🎯 Mục tiêu
+- Huấn luyện mô hình dự báo nhu cầu (XGBoost/Sklearn).
+- Tự động build & deploy container model API lên cloud.
+- CI/CD cho ML pipeline: build → test → train → register → deploy.
+- So sánh triển khai trên **Azure (AML + AKS)** và **AWS (SageMaker + EKS)**.
+- Expose API backend (FastAPI) cho ứng dụng khác sử dụng.
 
-## Cấu trúc thư mục
+---
+
+## 📂 Cấu trúc repo
 ```
-mlops-azure-retail-demand/
-  src/
-    train.py              # huấn luyện mô hình (fake training / real training sau này)
-    app.py                # inference API (FastAPI)
-  aml/
-    jobs/
-      train-job.yml       # AML job cho huấn luyện
-    environments/
-      train.Dockerfile    # Docker image cho training
-      infer.Dockerfile    # Docker image cho inference
-      conda.yml           # môi trường Python
-  k8s/
-    deployment.yaml       # manifest Deployment cho inference service
-    service.yaml          # Service LoadBalancer expose API
-    hpa.yaml              # Horizontal Pod Autoscaler
-  infra/
-    main.bicep            # IaC (có thể dùng Bicep hoặc Terraform)
-  tests/
-    test_train.py         # unit test cơ bản cho training script
-  requirements.txt
-  azure-pipelines.yml     # pipeline CI/CD
-  README.md
+retail-forecast/
+├─ core/                 # Code ML Python chung (train, features, tests)
+│   └─ requirements.txt
+│
+├─ server/               # Backend inference API (FastAPI)
+│   ├─ app.py
+│   ├─ Dockerfile
+│   └─ requirements.txt
+│
+├─ azure/                # Cấu hình cho Azure
+│   ├─ aml/              # Dockerfile + AML job
+│   ├─ infra/            # main.bicep (IaC Azure)
+│   ├─ k8s/              # deployment.yaml, service.yaml, hpa.yaml
+│   └─ azure-pipelines.yml
+│
+├─ aws/                  # Cấu hình cho AWS
+│   ├─ infra/            # Terraform EKS, ECR, S3
+│   ├─ k8s/              # deployment.yaml, service.yaml, hpa.yaml
+│   ├─ script/           # SageMaker train/register/deploy
+│   ├─ Jenkinsfile       # CI/CD Jenkins
+│   └─ .travis.yml       # CI/CD Travis (tuỳ chọn)
+│
+└─ README.md             # file này
 ```
 
-## Cách chạy local
+---
+
+## 🚀 Cách chạy nhanh
+
+### 1. Core (train & test)
 ```bash
-# Tạo env
-python -m venv .venv
-source .venv/bin/activate   # hoặc .venv\Scripts\activate trên Windows
+# Cài dependencies
+pip install -r core/requirements.txt
 
-# Cài thư viện
+# Train model (local)
+python core/src/train.py --train_path ./data/train.csv --target quantity --out_dir ./artifacts
+
+# Test
+pytest core/tests
+```
+
+---
+
+### 2. Backend API (local)
+```bash
+cd server
 pip install -r requirements.txt
+uvicorn app:app --reload --port 8000
 
-# Chạy huấn luyện local (fake training)
-python src/train.py --data ./data --out_dir ./outputs --epochs 5
-
-# Chạy inference local
-uvicorn src.app:app --reload --port 8000
-```
-
-Mở trình duyệt: [http://127.0.0.1:8000/predict?qty=100](http://127.0.0.1:8000/predict?qty=100)
-
----
-
-## Test
-```bash
-pytest -q
+# Gửi request thử
+curl -X POST http://localhost:8000/predict   -H 'Content-Type: application/json'   -d '{"features": [[10,1,0],[12,0,1]]}'
 ```
 
 ---
 
-## CI/CD Flow
-1. **CI**: Build & push Docker images → ACR  
-2. **CD**: Submit training job trên AML → Đăng ký model  
-3. **Deploy DEV**: Triển khai inference API trên ACI  
-4. **Deploy PROD**: Deploy model trên AKS + autoscale (HPA)  
+### 3. Azure pipeline
+- `azure/infra/main.bicep` → dựng hạ tầng (AKS, ACR).
+- `azure/aml/train-job.yml` → định nghĩa job huấn luyện.
+- `azure/k8s/*.yaml` → deploy app ML lên AKS.
+- CI/CD: `azure-pipelines.yml`.
 
 ---
 
-## Kubernetes (AKS)
-- `deployment.yaml` → tạo Deployment cho API inference.  
-- `service.yaml` → Service kiểu LoadBalancer expose endpoint ra ngoài.  
-- `hpa.yaml` → cấu hình autoscale theo CPU usage.  
+### 4. AWS pipeline
+- `aws/infra/` → Terraform tạo EKS cluster, ECR repo, S3 buckets.
+- `aws/k8s/*.yaml` → deploy app ML lên EKS (sử dụng image push từ server/).
+- `aws/script/*.py` → train + register model trên SageMaker.
+- CI/CD: `Jenkinsfile` hoặc `.travis.yml`.
 
 ---
 
-## Hạ tầng (IaC)
-- `main.bicep` → script Bicep để provision các resource:  
-  - Storage Account (Blob)  
-  - Container Registry (ACR)  
-  - Azure ML Workspace (AML)  
-  - AKS Cluster  
-
-Có thể thay bằng Terraform tuỳ nhu cầu.
+## 🧩 Workflow tổng quan
+1. **Code thay đổi (train.py/app.py)** → trigger CI/CD.
+2. CI chạy **lint & test** (`pytest`, `flake8`).
+3. CI gọi **SageMaker/Azure ML** để train → artifact model.
+4. Model được **đăng ký** (SageMaker Registry hoặc AML).
+5. Build Docker image inference (FastAPI) → push **ECR (AWS)** / **ACR (Azure)**.
+6. Apply `k8s/` manifest → deploy API model lên **EKS (AWS)** / **AKS (Azure)**.
+7. HPA auto-scale pods theo tải (CPU/memory).
 
 ---
 
-## Roadmap
-- [x] Tạo repo + skeleton  
-- [x] Thêm manifest Kubernetes (Deployment, Service, HPA)  
-- [x] Thêm IaC (Bicep template)  
-- [ ] Viết train script đầy đủ (real dataset)  
-- [ ] Thiết lập Azure Pipelines  
-- [ ] Tích hợp Azure ML training  
-- [ ] Triển khai DEV trên ACI  
-- [ ] Triển khai PROD trên AKS  
-- [ ] Monitoring & retraining automation  
+## 📊 So sánh nhanh
+| Thành phần       | Azure                                | AWS                                   |
+|------------------|--------------------------------------|---------------------------------------|
+| IaC              | Bicep                                | Terraform                             |
+| Training         | Azure ML (AML job)                   | SageMaker Training Job                 |
+| Model Registry   | AML Model Registry                   | SageMaker Model Registry               |
+| Container Repo   | ACR                                  | ECR                                   |
+| Orchestration    | AKS (Kubernetes)                     | EKS (Kubernetes)                       |
+| CI/CD            | Azure DevOps Pipelines               | Jenkins / Travis CI                    |
+| Monitoring       | Azure Monitor + Logs                 | CloudWatch                             |
 
 ---
