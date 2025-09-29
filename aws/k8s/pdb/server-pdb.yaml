@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: server-pdb
+  namespace: retail
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: retail-server

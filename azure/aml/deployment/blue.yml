@@ -1,0 +1,35 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+name: blue
+endpoint_name: retail-forecast-endpoint
+
+# Model đã đăng ký trong AML (sinh ra từ train job)
+model: azureml:retail-forecast@latest
+
+# BYOC: dùng image inference từ ACR (FastAPI/uvicorn, v.v.)
+environment:
+  image: ACR_NAME.azurecr.io/retail/infer:IMAGE_TAG   # ví dụ: acrretaildev.azurecr.io/retail/infer:$(Build.BuildId)
+
+instance_type: Standard_DS3_v2
+instance_count: 1
+
+app_insights_enabled: true
+
+liveness_route:
+  path: /health
+  port: 8080
+readiness_route:
+  path: /health
+  port: 8080
+
+request_settings:
+  request_timeout_ms: 60000
+  max_concurrent_requests_per_instance: 1
+  max_queue_wait_ms: 60000
+
+scale_settings:
+  type: default
+  min_instances: 1
+  max_instances: 3
+
+tags:
+  traffic: blue-100

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-system
+---
+# Nếu bạn đã cài bằng Helm trong Terraform, có thể bỏ file này.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: kube-system
+labels:
+  k8s-app: metrics-server
+spec:
+  selector:
+    matchLabels: { k8s-app: metrics-server }
+  template:
+    metadata:
+      labels: { k8s-app: metrics-server }
+    spec:
+      hostNetwork: false
+      containers:
+        - name: metrics-server
+          image: k8s.gcr.io/metrics-server/metrics-server:v0.7.2
+          args:
+            - --kubelet-insecure-tls
+            - --kubelet-preferred-address-types=InternalIP
+          ports: [{containerPort: 4443, name: main-port}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  selector: { k8s-app: metrics-server }
+  ports: [{ port: 443, targetPort: main-port }]

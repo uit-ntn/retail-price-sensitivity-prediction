@@ -1,0 +1,16 @@
+name: retail-train-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - numpy
+      - pandas
+      - scikit-learn
+      - mlflow
+      - azureml-mlflow
+      - pyarrow
+      - joblib
+      - matplotlib

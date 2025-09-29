@@ -1,0 +1,10 @@
+project         = "retail-forecast"
+env             = "dev"
+region          = "ap-southeast-1"
+az_count        = 2
+cluster_version = "1.30"
+instance_types  = ["m6i.large","m5.large"]
+spot            = true
+allowed_cidrs   = ["YOUR_OFFICE_IP/32"]
+domain_name     = "dev.retail-forecast.example.com"
+alb_logs_bucket = ""

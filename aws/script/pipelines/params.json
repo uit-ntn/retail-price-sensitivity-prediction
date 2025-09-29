@@ -1,0 +1,14 @@
+{
+    "ProjectName": "retail-forecast",
+    "Region": "ap-southeast-1",
+    "S3DataBucket": "REPLACE_ME-data",
+    "S3ArtifactsBucket": "REPLACE_ME-artifacts",
+    "TrainingImageUri": "683313688378.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3", 
+    "InstanceType": "ml.m5.xlarge",
+    "InstanceCount": 1,
+    "ModelPackageGroupName": "retail-forecast",
+    "TrainEntryPoint": "train.py",
+    "EvalEntryPoint": "processing_evaluate.py",
+    "ModelApprovalStatus": "PendingManualApproval"
+  }
+  

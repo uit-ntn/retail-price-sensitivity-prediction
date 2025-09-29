@@ -1,0 +1,16 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "location": { "value": "southeastasia" },
+      "namePrefix": { "value": "retail-dev" },
+      "acrSku": { "value": "Standard" },
+      "workspaceName": { "value": "amlws-retail-dev" },
+      "keyVaultName": { "value": "kv-retail-dev" },
+      "storageAccountName": { "value": "stretaildev" },
+      "logAnalyticsName": { "value": "log-retail-dev" },
+      "appInsightsName": { "value": "appi-retail-dev" },
+      "enableRbacOnKv": { "value": true }
+    }
+  }
+  

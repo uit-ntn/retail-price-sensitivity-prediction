@@ -1,0 +1,4 @@
+requests
+| where success == false or toint(resultCode) >= 500
+| summarize failures=count() by bin(timestamp, 5m), resultCode, tostring(operation_Name)
+| order by timestamp desc

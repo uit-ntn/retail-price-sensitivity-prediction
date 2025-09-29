@@ -42,3 +42,162 @@ data/
 # Azure ML
 aml_config/
 .azureml/
+
+# ========== SENSITIVE & SECURITY FILES ==========
+
+# Credentials & API Keys
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+auth/
+
+# Cloud Provider Configs
+# AWS
+.aws/
+aws-credentials
+aws-config
+*.aws
+# Azure
+.azure/
+azure-credentials
+*.publishsettings
+# GCP
+.gcp/
+gcp-credentials.json
+service-account*.json
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+terraform.rc
+.terraformrc
+crash.log
+crash.*.log
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+kube-config
+.kube/
+helm-values.yaml
+!helm-values.example.yaml
+
+# SSH Keys
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.pub
+ssh_host_*
+known_hosts
+
+# SSL/TLS Certificates
+*.csr
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+database.yml
+!database.example.yml
+
+# Configuration Files với Secrets
+config.json
+!config.example.json
+appsettings.json
+!appsettings.example.json
+application.yml
+!application.example.yml
+local.settings.json
+
+# MLOps Specific
+# Model artifacts với sensitive data
+*.pkl
+*.joblib
+*.h5
+*.pb
+*.onnx
+*.model
+trained_models/
+model_registry/
+
+# Experiment tracking
+mlruns/
+.mlflow/
+wandb/
+tensorboard_logs/
+
+# Data files (potentially sensitive)
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+raw_data/
+processed_data/
+training_data/
+test_data/
+
+# Monitoring & Logging
+*.access.log
+*.error.log
+application.log
+audit.log
+security.log
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.swp
+*.tmp
+*~
+
+# IDE specific
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS specific
+*.pid
+*.seed
+*.pid.lock
+.npm
+.node_repl_history
+.yarn-integrity
+
+# Container secrets
+docker-compose.override.yml
+.dockerignore.local
+
+# CI/CD secrets
+.github/secrets/
+.gitlab-ci-local/
+jenkins-secrets/
+pipeline-secrets/

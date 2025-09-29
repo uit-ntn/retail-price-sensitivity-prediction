@@ -1,0 +1,6 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+name: retail-forecast-endpoint
+auth_mode: key  # hoặc 'aml_token' nếu dùng AAD
+tags:
+  project: retail-forecast
+  env: dev
