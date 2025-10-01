@@ -33,7 +33,19 @@ resource "azurerm_storage_account" "st" {
   account_replication_type         = "LRS"
   min_tls_version                  = "TLS1_2"
   allow_nested_items_to_be_public  = false
-  tags                             = var.tags
+  
+  # Enable ADLS Gen2
+  is_hns_enabled = true
+  
+  # Enable versioning and soft delete
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+    versioning_enabled = true
+  }
+  
+  tags = var.tags
 }
 
 resource "azurerm_storage_container" "data" {
@@ -64,7 +76,15 @@ resource "azurerm_container_registry" "acr" {
   location            = var.location
   sku                 = var.acr_sku
   admin_enabled       = false
-  tags                = var.tags
+  
+  # Enable vulnerability scanning
+  security_policy {
+    trust_policy {
+      enabled = true
+    }
+  }
+  
+  tags = var.tags
 }
 
 # ---------- Azure ML Workspace ----------
@@ -97,9 +117,24 @@ resource "azurerm_machine_learning_compute_cluster" "cpu" {
   tags = var.tags
 }
 
-# ---------- Cho AML kéo image từ ACR ----------
+# ---------- RBAC Assignments ----------
+# AML Workspace MI → ACR Pull
 resource "azurerm_role_assignment" "acr_pull_to_aml" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
+  principal_id         = azurerm_machine_learning_workspace.aml.identity[0].principal_id
+}
+
+# AML Workspace MI → Storage Blob Data Reader
+resource "azurerm_role_assignment" "storage_reader_to_aml" {
+  scope                = azurerm_storage_account.st.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = azurerm_machine_learning_workspace.aml.identity[0].principal_id
+}
+
+# AML Workspace MI → Key Vault Secrets User
+resource "azurerm_role_assignment" "kv_secrets_to_aml" {
+  scope                = azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_machine_learning_workspace.aml.identity[0].principal_id
 }
