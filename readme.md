@@ -1,4 +1,4 @@
-# Retail Forecast MLOps (Azure + AWS)
+# Retail price_senvitivy_prediction MLOps (Azure + AWS)
 
 Dự án demo **MLOps pipeline đa cloud (Azure & AWS)** cho bài toán **dự báo nhu cầu bán lẻ**.  
 Ngôn ngữ: **Python**, hạ tầng bằng **Terraform / Bicep**, triển khai inference bằng **Kubernetes (AKS/EKS)**,  
@@ -18,7 +18,7 @@ CI/CD bằng **Azure DevOps Pipeline** hoặc **Jenkins/Travis CI**.
 ## 📂 Cấu trúc repo
 
 ```
-retail-forecast/
+retail-price_senvitivy_prediction/
 ├─ core/                 # Dependencies chung cho ML
 │   └─ requirements.txt  # numpy, pandas, scikit-learn, mlflow, fastapi, pytest
 │
@@ -387,21 +387,21 @@ cd ../cloudwatch-logs && kubectl apply -f fluent-bit-daemonset.yaml
 #### 🔵 **Start with Azure:**
 ```bash
 git clone <repo-url>
-cd retail-forecast/azure
+cd retail-price_senvitivy_prediction/azure
 # Follow azure/README.md
 ```
 
 #### 🟠 **Start with AWS:**
 ```bash
 git clone <repo-url>
-cd retail-forecast/aws
+cd retail-price_senvitivy_prediction/aws
 # Follow aws/README.md
 ```
 
 #### 🔄 **Multi-Cloud Setup:**
 ```bash
 # Deploy both platforms
-cd retail-forecast
+cd retail-price_senvitivy_prediction
 # Setup Azure first
 cd azure && # follow setup
 # Setup AWS second  
