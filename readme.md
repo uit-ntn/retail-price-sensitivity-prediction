@@ -18,14 +18,23 @@ CI/CD bằng **Azure DevOps Pipeline** hoặc **Jenkins/Travis CI**.
 ## 📂 Cấu trúc repo
 
 ```
-retail-price_senvitivy_prediction/
+retail-price-sensitivity-prediction/
 ├─ core/                 # Dependencies chung cho ML
 │   └─ requirements.txt  # numpy, pandas, scikit-learn, mlflow, fastapi, pytest
 │
 ├─ server/               # Backend inference API (FastAPI)
+│   ├─ main.py           # FastAPI application entry point
+│   ├─ model_loader.py   # ML model loading from S3/local
+│   ├─ prediction_service.py # Feature preprocessing & prediction logic
+│   ├─ health_check.py   # Docker health check script
 │   ├─ DockerFile        # Container definition cho inference API
-│   ├─ Readme.md         # Hướng dẫn setup server
-│   └─ requirements.txt  # Dependencies cho API server
+│   ├─ Readme.md         # Hướng dẫn chạy server đơn giản
+│   ├─ SETUP.md          # Chi tiết setup và chạy server
+│   ├─ requirements.txt  # Dependencies cho API server
+│   └─ server/           # Nested server directory (duplicate)
+│       ├─ Dockerfile    # Alternative Docker configuration
+│       ├─ index.html    # Web UI for API testing
+│       └─ ...           # Additional server files
 │
 ├─ azure/                # 🔵 Azure MLOps Configuration
 │   ├─ aml/              # Azure Machine Learning
@@ -127,12 +136,54 @@ retail-price_senvitivy_prediction/
 │
 ├─ tests/                # Test directory (cần implement)
 ├─ .gitignore           # Git ignore với security best practices
-└─ README.md            # 📖 File này
+├─ README.md            # 📖 File này
+└─ server/SETUP.md      # 📖 Hướng dẫn chi tiết chạy server
 ```
 
 ---
 
 ## 🚀 Quick Start Guide
+
+### 🖥️ Local Server Development
+
+#### 1. **Setup FastAPI Server** → [`server/`](./server/)
+
+```bash
+cd server
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run server (uses mock model by default)
+python main.py
+
+# Server will start at http://localhost:8000
+# API docs: http://localhost:8000/docs
+```
+
+#### 2. **Test API**
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Make prediction
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "BASKET_SIZE": "M",
+    "BASKET_TYPE": "MIXED", 
+    "STORE_REGION": "LONDON",
+    "STORE_FORMAT": "LS",
+    "SPEND": 125.50,
+    "QUANTITY": 3,
+    "PROD_CODE_20": "FOOD",
+    "PROD_CODE_30": "FRESH"
+  }'
+```
+
+**📖 Chi tiết setup:** [server/SETUP.md](./server/SETUP.md)
+
+---
 
 ### 🔵 Azure Deployment
 
@@ -306,8 +357,12 @@ cd ../cloudwatch-logs && kubectl apply -f fluent-bit-daemonset.yaml
 ### 🔧 **Cần hoàn thiện**
 
 #### Common:
+- [x] FastAPI server implementation (`server/main.py`)
+- [x] Model loading service (`server/model_loader.py`) 
+- [x] Prediction service (`server/prediction_service.py`)
+- [x] Health check endpoints (`server/health_check.py`)
+- [x] Mock model for testing (no S3 required)
 - [ ] Core ML training code (`core/src/train.py`)
-- [ ] FastAPI server implementation (`server/app.py`)
 - [ ] Test suite implementation (`tests/`)
 - [ ] Sample data và notebooks
 

@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: retail-forecast-hpa
+  name: retail-api-hpa
   namespace: mlops
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: retail-forecast-deployment
+    name: retail-api
   minReplicas: 2
   maxReplicas: 5
   metrics:

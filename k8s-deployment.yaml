@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mlops-retail-forecast
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mlops-retail-api-sa
+  namespace: mlops-retail-forecast
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::842676018087:role/mlops-irsa-s3-access-role
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retail-api
+  namespace: mlops-retail-forecast
+  labels:
+    app: retail-api
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: retail-api
+  template:
+    metadata:
+      labels:
+        app: retail-api
+        version: v1.0.0
+    spec:
+      serviceAccountName: mlops-retail-api-sa
+      containers:
+        - name: api
+          image: 842676018087.dkr.ecr.us-east-1.amazonaws.com/mlops/retail-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: AWS_DEFAULT_REGION
+              value: "us-east-1"
+            - name: MODEL_BUCKET
+              value: "mlops-retail-prediction-dev-842676018087"
+            - name: MODEL_KEY
+              value: "artifacts/retail-price-sensitivity-model.tar.gz"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: ENVIRONMENT
+              value: "production"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: retail-api-service
+  namespace: mlops-retail-forecast
+  labels:
+    app: retail-api
+spec:
+  type: ClusterIP
+  selector:
+    app: retail-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: retail-api-ingress
+  namespace: mlops-retail-forecast
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: retail-api-service
+                port:
+                  number: 80

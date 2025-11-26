@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retail-api
+  namespace: mlops
+  labels:
+    app: retail-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: retail-api
+  template:
+    metadata:
+      labels:
+        app: retail-api
+    spec:
+      serviceAccountName: retail-api-sa
+      containers:
+      - name: retail-api
+        image: 842676018087.dkr.ecr.ap-southeast-1.amazonaws.com/mlops/retail-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: PORT
+          value: "8000"
+        - name: AWS_DEFAULT_REGION
+          value: "ap-southeast-1"
+        - name: MODEL_PACKAGE_GROUP
+          value: "retail-price-sensitivity-models"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi" 
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---

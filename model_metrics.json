@@ -1,0 +1,68 @@
+{
+  "model_performance": {
+    "accuracy": 0.847,
+    "f1_score": 0.832,
+    "precision": 0.856,
+    "recall": 0.821,
+    "roc_auc": 0.891
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Low",
+      "Medium",
+      "High"
+    ],
+    "matrix": [
+      [
+        245,
+        23,
+        12
+      ],
+      [
+        18,
+        198,
+        24
+      ],
+      [
+        8,
+        19,
+        167
+      ]
+    ]
+  },
+  "class_performance": {
+    "Low": {
+      "precision": 0.902,
+      "recall": 0.875,
+      "f1_score": 0.888
+    },
+    "Medium": {
+      "precision": 0.825,
+      "recall": 0.825,
+      "f1_score": 0.825
+    },
+    "High": {
+      "precision": 0.822,
+      "recall": 0.861,
+      "f1_score": 0.841
+    }
+  },
+  "training_info": {
+    "training_samples": 1000,
+    "test_samples": 200,
+    "validation_samples": 100,
+    "features_count": 8,
+    "training_time_minutes": 2.3,
+    "training_date": "2025-11-26T15:11:25.662329"
+  },
+  "feature_importance": {
+    "SPEND": 0.34,
+    "QUANTITY": 0.18,
+    "BASKET_SIZE": 0.16,
+    "STORE_FORMAT": 0.12,
+    "PROD_CODE_20": 0.09,
+    "PROD_CODE_30": 0.07,
+    "BASKET_TYPE": 0.03,
+    "STORE_REGION": 0.01
+  }
+}

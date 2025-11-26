@@ -1,0 +1,5 @@
+Mock Random Forest Model for Retail Price Sensitivity
+Trained on: 2025-11-26T15:11:25.666329
+Features: BASKET_SIZE, BASKET_TYPE, STORE_REGION, STORE_FORMAT, SPEND, QUANTITY, PROD_CODE_20, PROD_CODE_30
+Classes: Low, Medium, High
+Accuracy: 0.847

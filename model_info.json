@@ -1,0 +1,22 @@
+{
+  "model_type": "RandomForestClassifier",
+  "feature_names": [
+    "BASKET_SIZE",
+    "BASKET_TYPE",
+    "STORE_REGION",
+    "STORE_FORMAT",
+    "SPEND",
+    "QUANTITY",
+    "PROD_CODE_20",
+    "PROD_CODE_30"
+  ],
+  "classes": [
+    "Low",
+    "Medium",
+    "High"
+  ],
+  "accuracy": 0.847,
+  "f1_score": 0.832,
+  "created_at": "2025-11-26T15:11:25.664330",
+  "version": "1.0.0"
+}

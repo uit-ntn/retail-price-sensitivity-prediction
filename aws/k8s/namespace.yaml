@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   name: mlops
   labels:
-    app.kubernetes.io/name: retail-forecast
+    app.kubernetes.io/name: retail-api

@@ -2,8 +2,12 @@
 numpy
 pandas
 
-# Machine Learning logging (Azure ML tích hợp MLflow)
-mlflow
+# Machine Learning
+scikit-learn
+joblib
+
+# AWS SDK
+boto3
 
 # API serving
 fastapi
@@ -12,6 +16,5 @@ uvicorn
 # Testing
 pytest
 
-# Optional: cho pickle / joblib model (nếu cần)
-scikit-learn
-joblib
+# Optional: Machine Learning logging
+mlflow

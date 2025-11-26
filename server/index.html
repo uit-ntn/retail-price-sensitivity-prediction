@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Price Sensitivity Prediction API - Test Interface</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 5px;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            margin: 10px auto;
+            overflow: hidden;
+        }
+
+        .gradient-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .metric-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-card {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .error-alert {
+            border-left: 5px solid #dc3545;
+            background: linear-gradient(90deg, #f8d7da, #ffffff);
+        }
+        
+        .success-alert {
+            border-left: 5px solid #28a745;
+            background: linear-gradient(90deg, #d4edda, #ffffff);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .form-section, .results-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .form-section h2, .results-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-healthy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .prediction-result {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .prediction-high { color: #dc3545; }
+        .prediction-medium { color: #ffc107; }
+        .prediction-low { color: #28a745; }
+
+        .probability-bars {
+            margin-top: 15px;
+        }
+
+        .probability-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .probability-label {
+            width: 80px;
+            font-weight: 600;
+        }
+
+        .probability-bar {
+            flex: 1;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .probability-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .prob-high { background: #dc3545; }
+        .prob-medium { background: #ffc107; }
+        .prob-low { background: #28a745; }
+
+        .probability-value {
+            width: 50px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-links {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .api-links h3 {
+            margin-bottom: 15px;
+            color: #1976d2;
+        }
+
+        .api-links a {
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+            padding: 8px 15px;
+            background: #1976d2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .api-links a:hover {
+            background: #1565c0;
+        }
+
+        .model-metrics {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            transition: transform 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .model-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .model-info h4 {
+            margin-bottom: 10px;
+            color: #0d47a1;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .confusion-matrix {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .matrix-table th, .matrix-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .matrix-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-2 py-1">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="gradient-header text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-cart-fill"></i> Retail Price Sensitivity Prediction
+                </h1>                
+                <!-- SageMaker Model Registry Info Card -->
+                <div class="row justify-content-center mb-3">
+                    <div class="col-lg-10">
+                        <div class="card bg-white bg-opacity-95 shadow">
+                            <div class="card-body py-3">
+                                <div class="row align-items-center text-dark">
+                                    <!-- Model Info -->
+                                    <div class="col-md-3 text-center">
+                                        <span class="badge bg-success mb-2" id="registryStatus">
+                                            <i class="bi bi-database-fill"></i> SageMaker Registry
+                                        </span>
+                                        <div>
+                                            <small class="fw-bold" id="modelNameDisplay">Loading...</small><br>
+                                            <small class="text-muted" id="modelVersionDisplay">v-</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Metrics -->
+                                    <div class="col-md-9">
+                                        <div class="row text-center">
+                                            <div class="col-3">
+                                                <h4 class="text-primary mb-1" id="accuracyValue">-</h4>
+                                                <small class="text-muted">Accuracy</small>
+                                            </div>
+                                            <div class="col-3">
+                                                <h4 class="text-success mb-1" id="f1Value">-</h4>
+                                                <small class="text-muted">F1-Score</small>
+                                            </div>
+                                            <div class="col-3">
+                                                <h4 class="text-warning mb-1" id="precisionValue">-</h4>
+                                                <small class="text-muted">Precision</small>
+                                            </div>
+                                            <div class="col-3">
+                                                <h4 class="text-info mb-1" id="recallValue">-</h4>
+                                                <small class="text-muted">Recall</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid p-2">
+                <div class="row g-3">
+                    <!-- Left Column: Input Form -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 prediction-card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-pencil-square"></i> Customer Transaction Data
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="basketSize" class="form-label small">Basket Size</label>
+                                        <select class="form-select form-select-sm" id="basketSize">
+                                            <option value="S">Small (S)</option>
+                                            <option value="M" selected>Medium (M)</option>
+                                            <option value="L">Large (L)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="basketType" class="form-label small">Basket Type</label>
+                                        <input type="text" class="form-control form-control-sm" id="basketType" value="MIXED">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="storeRegion" class="form-label small">Store Region</label>
+                                        <input type="text" class="form-control form-control-sm" id="storeRegion" value="LONDON">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="storeFormat" class="form-label small">Store Format</label>
+                                        <select class="form-select form-select-sm" id="storeFormat">
+                                            <option value="SS">Small Store</option>
+                                            <option value="LS" selected>Large Store</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="spend" class="form-label small">Spend (£)</label>
+                                        <input type="number" class="form-control form-control-sm" id="spend" value="125.50" step="0.01" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="quantity" class="form-label small">Quantity</label>
+                                        <input type="number" class="form-control form-control-sm" id="quantity" value="3" min="1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="prodCode20" class="form-label small">Product L2</label>
+                                        <input type="text" class="form-control form-control-sm" id="prodCode20" value="FOOD">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="prodCode30" class="form-label small">Product L3</label>
+                                        <input type="text" class="form-control form-control-sm" id="prodCode30" value="FRESH">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-4">
+                                    <button class="btn btn-primary btn-lg" onclick="makePrediction()">
+                                        <i class="bi bi-magic"></i> Predict Price Sensitivity
+                                    </button>
+                                </div>
+                                
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Results -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 prediction-card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-magic"></i> AI Prediction Results
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Prediction Results -->
+                                <div id="results">
+                                    <div class="text-center p-3 text-muted">
+                                        <i class="bi bi-robot fs-1"></i>
+                                        <p class="mt-2 small">Enter customer data and predict price sensitivity</p>
+                                    </div>
+                                </div>                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let apiBaseUrl = window.location.origin;
+        let featureChart = null;
+
+        // Update model status
+        function updateModelStatus(status, text) {
+            const element = document.getElementById('modelStatus');
+            if (element) {
+                const iconClass = status === 'success' ? 'bi bi-check-circle text-success' : 
+                                 status === 'warning' ? 'bi bi-exclamation-triangle text-warning' : 'bi bi-x-circle text-danger';
+                element.innerHTML = `<i class="${iconClass}"></i> <span class="fw-bold">${text}</span>`;
+            }
+        }
+
+        // Safe element update helper
+        function safeUpdateElement(elementId, content, isHTML = true) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.warn(`Element not found: ${elementId}`);
+                return false;
+            }
+            if (isHTML) {
+                element.innerHTML = content;
+            } else {
+                element.textContent = content;
+            }
+            return true;
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'healthy') {
+                    updateModelStatus('success', 'SageMaker Model Ready');
+                    safeUpdateElement('results', `
+                        <div class="alert alert-success" role="alert">
+                            <h5><i class="bi bi-check-circle"></i> System Ready</h5>
+                            <p class="mb-0">Server: ${data.status} | Model: Loaded | Version: ${data.model_version}</p>
+                        </div>
+                    `);
+                } else {
+                    throw new Error(`Server Error`);
+                }
+            } catch (error) {
+                updateModelStatus('danger', 'Connection Failed');
+                safeUpdateElement('results', `
+                    <div class="alert alert-danger" role="alert">
+                        <h5><i class="bi bi-exclamation-triangle"></i> System Error</h5>
+                        <p class="mb-0">❌ Cannot connect to server. Please check if the API is running.</p>
+                    </div>
+                `);
+            }
+        }
+
+        async function makePrediction() {
+            const resultsDiv = document.getElementById('results');
+            
+            // Validate required elements exist
+            if (!resultsDiv) {
+                console.error('Results div not found');
+                alert('Error: Results container not found. Please refresh the page.');
+                return;
+            }
+
+            // Get form data with error checking
+            const requiredFields = {
+                'basketSize': 'Basket Size',
+                'basketType': 'Basket Type', 
+                'storeRegion': 'Store Region',
+                'storeFormat': 'Store Format',
+                'spend': 'Spend Amount',
+                'quantity': 'Quantity',
+                'prodCode20': 'Product Category L2',
+                'prodCode30': 'Product Category L3'
+            };
+
+            const requestData = {};
+            const missingFields = [];
+
+            for (const [fieldId, fieldName] of Object.entries(requiredFields)) {
+                const element = document.getElementById(fieldId);
+                if (!element) {
+                    missingFields.push(fieldName);
+                    continue;
+                }
+
+                let value = element.value.trim();
+                
+                if (fieldId === 'spend') {
+                    value = parseFloat(value);
+                    if (isNaN(value) || value <= 0) {
+                        resultsDiv.innerHTML = `
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i> <strong>Invalid Spend Amount</strong><br>
+                                Please enter a valid positive number for spend amount.
+                            </div>
+                        `;
+                        return;
+                    }
+                } else if (fieldId === 'quantity') {
+                    value = parseInt(value);
+                    if (isNaN(value) || value <= 0) {
+                        resultsDiv.innerHTML = `
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i> <strong>Invalid Quantity</strong><br>
+                                Please enter a valid positive integer for quantity.
+                            </div>
+                        `;
+                        return;
+                    }
+                } else if (!value) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> <strong>Missing Required Field</strong><br>
+                            Please fill in the <strong>${fieldName}</strong> field.
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Map field names to API expected names
+                const apiFieldName = fieldId === 'prodCode20' ? 'PROD_CODE_20' :
+                                   fieldId === 'prodCode30' ? 'PROD_CODE_30' :
+                                   fieldId.replace(/([A-Z])/g, '_$1').toUpperCase();
+                
+                requestData[apiFieldName] = value;
+            }
+
+            if (missingFields.length > 0) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Missing Form Elements</strong><br>
+                        The following form fields are missing from the page: ${missingFields.join(', ')}<br>
+                        Please refresh the page and try again.
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // Show loading state
+                resultsDiv.innerHTML = `
+                    <div class="d-flex justify-content-center align-items-center p-4">
+                        <div class="spinner-border text-primary me-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="text-muted">Making prediction...</span>
+                    </div>
+                `;
+                
+                const response = await fetch(`${apiBaseUrl}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
+                }
+
+                const data = await response.json();
+                
+                // Display results with Bootstrap styling
+                const predictionClass = data.prediction.toLowerCase();
+                const predictionBadgeClass = predictionClass === 'low' ? 'success' : 
+                                           predictionClass === 'medium' ? 'warning' : 'danger';
+                
+                resultsDiv.innerHTML = `
+                    <div class="alert success-alert mb-3" role="alert">
+                        <h5><i class="bi bi-magic"></i> Prediction Result</h5>
+                        <hr>
+                        <div class="text-center mb-3">
+                            <span class="badge bg-${predictionBadgeClass} fs-4 p-3">
+                                ${getPredictionIcon(data.prediction)} ${data.prediction} Price Sensitivity
+                            </span>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6"><strong>Confidence:</strong></div>
+                            <div class="col-6">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-${predictionBadgeClass}" role="progressbar" 
+                                         style="width: ${(data.confidence * 100)}%" 
+                                         aria-valuenow="${(data.confidence * 100)}" aria-valuemin="0" aria-valuemax="100">
+                                        ${(data.confidence * 100).toFixed(1)}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6"><strong>Model Version:</strong></div>
+                            <div class="col-6"><code>${data.model_version}</code></div>
+                        </div>
+                        
+                        <h6><i class="bi bi-bar-chart"></i> Probability Breakdown:</h6>
+                        ${Object.entries(data.probability).map(([label, prob]) => {
+                            const barClass = label.toLowerCase() === 'low' ? 'success' : 
+                                           label.toLowerCase() === 'medium' ? 'warning' : 'danger';
+                            return `
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <small><strong>${label}:</strong></small>
+                                        <small>${(prob * 100).toFixed(1)}%</small>
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-${barClass}" role="progressbar" 
+                                             style="width: ${(prob * 100)}%" 
+                                             aria-valuenow="${(prob * 100)}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="alert error-alert" role="alert">
+                        <h5><i class="bi bi-exclamation-triangle"></i> Prediction Failed</h5>
+                        <hr>
+                        <p><strong>Error:</strong> <code>${error.message}</code></p>
+                        
+                        <p><strong>Possible Issues:</strong></p>
+                        <ul>
+                            <li><strong>Model Loading:</strong> Model failed to load from S3/Registry</li>
+                            <li><strong>Input Validation:</strong> Invalid input data format</li>
+                            <li><strong>API Error:</strong> Server-side processing error</li>
+                            <li><strong>Network:</strong> Request timeout or connection error</li>
+                        </ul>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-outline-danger btn-sm" onclick="makePrediction()">
+                                <i class="bi bi-arrow-repeat"></i> Retry Prediction
+                            </button>
+                        </div>
+                    </div>
+                    
+
+                `;
+            }
+        }
+
+        function getPredictionIcon(prediction) {
+            switch(prediction) {
+                case 'High': return '🔴';
+                case 'Medium': return '🟡';
+                case 'Low': return '🟢';
+                default: return '⚪';
+            }
+        }
+
+        // Load model metrics
+        async function loadModelMetrics() {
+            try {
+                // Load model info
+                const infoResponse = await fetch(`${apiBaseUrl}/model/info`);
+                if (infoResponse.ok) {
+                    const infoData = await infoResponse.json();
+                    
+                    // Update model name and version in header
+                    const modelName = infoData.model_package_group || infoData.model_name || 'Unknown Model';
+                    safeUpdateElement('modelNameDisplay', modelName, false);
+                    safeUpdateElement('modelVersionDisplay', `v${infoData.version} (${infoData.approval_status || 'Unknown'})`, false);
+                }
+                
+                // Load metrics
+                const metricsResponse = await fetch(`${apiBaseUrl}/model/metrics`);
+                if (metricsResponse.ok) {
+                    const data = await metricsResponse.json();
+                    const perf = data.model_performance;
+                    
+                    // Update metrics in header
+                    safeUpdateElement('accuracyValue', (perf.accuracy * 100).toFixed(1) + '%', false);
+                    safeUpdateElement('f1Value', (perf.f1_score * 100).toFixed(1) + '%', false);
+                    safeUpdateElement('precisionValue', (perf.precision * 100).toFixed(1) + '%', false);
+                    safeUpdateElement('recallValue', (perf.recall * 100).toFixed(1) + '%', false);
+                    
+                    updateModelStatus('success', 'SageMaker Registry Connected');
+                }
+            } catch (error) {
+                updateModelStatus('warning', 'Connection Failed');
+                safeUpdateElement('modelNameDisplay', 'Connection Failed', false);
+                safeUpdateElement('accuracyValue', '-', false);
+                safeUpdateElement('f1Value', '-', false);
+                safeUpdateElement('precisionValue', '-', false);
+                safeUpdateElement('recallValue', '-', false);
+            }
+        }
+        
+
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            updateModelStatus('warning', 'Connecting to SageMaker...');
+            setTimeout(() => {
+                checkHealth();
+                loadModelMetrics();
+            }, 500);
+        });
+
+
+
+
+    </script>
+</body>
+</html>

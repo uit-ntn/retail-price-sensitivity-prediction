@@ -9,13 +9,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional
 import logging
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 from model_loader import ModelLoader
 from prediction_service import PredictionService
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+log_level = os.getenv("LOG_LEVEL", "INFO")
+logging.basicConfig(level=getattr(logging, log_level))
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
@@ -131,6 +137,37 @@ async def model_info():
         logger.error(f"Model info error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get model info: {str(e)}")
 
+@app.get("/model/metrics")
+async def model_metrics():
+    """Get model performance metrics"""
+    try:
+        metrics = model_loader.get_model_metrics()
+        return metrics
+    except Exception as e:
+        logger.error(f"Model metrics error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get model metrics: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # Get host and port from environment variables
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8000"))
+    
+    logger.info(f"Starting server on {host}:{port}")
+    
+    # Get actual model info
+    model_info = model_loader.get_model_info()
+    model_source = model_info.get('model_source', 'unknown')
+    
+    if model_source == 'sagemaker_registry':
+        logger.info(f"Model source: SageMaker Model Registry ({model_info.get('model_package_group', 'N/A')})")
+    elif model_source == 's3':
+        logger.info(f"Model source: S3 Bucket ({os.getenv('MODEL_BUCKET', 'N/A')})")
+    else:
+        logger.info(f"Model source: {model_source}")
+        
+    logger.info(f"Model version: {model_info.get('version', 'N/A')}")
+    logger.info(f"Model type: {model_info.get('model_type', 'N/A')}")
+    
+    uvicorn.run(app, host=host, port=port)
